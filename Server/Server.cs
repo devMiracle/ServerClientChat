@@ -11,7 +11,7 @@ namespace Server
     class Server
     {
         public IPEndPoint EndPoint { get; set; }
-
+        private List<string> messageList;
         private Server()
         {
 
@@ -19,6 +19,7 @@ namespace Server
         public Server(string address, int port) 
         {
             EndPoint = new IPEndPoint(IPAddress.Parse(address), port);
+            messageList = new List<string>();
         }
 
         public void Start()
@@ -33,21 +34,22 @@ namespace Server
                     Console.WriteLine("ожидаем соединение");
                     Socket handler = socket.Accept();
                     Console.WriteLine("новое подключение: " + handler.RemoteEndPoint.ToString());
-                    string data = null;
                     byte[] buffer = new byte[1024];
                     int i = handler.Receive(buffer);
-                    data += Encoding.Unicode.GetString(buffer, 0, i);
-                    Console.WriteLine("data: " + data + '\n');
-                    string answer = "Спасибо за запрос";
-                    byte[] msg = Encoding.Unicode.GetBytes(answer);
-                    handler.Send(msg);
+                    messageList.Add(Encoding.Unicode.GetString(buffer, 0, i));
 
 
-                    //do
-                    //{
-                    //    textReciveFromClient += Encoding.ASCII.GetString(buffer, 0, i);
-                    //    Console.WriteLine(textReciveFromClient);
-                    //} while (i > 0);
+                    byte[] msg;
+                    int l = messageList.Count;
+                    do
+                    {
+                        msg = Encoding.Unicode.GetBytes(messageList[l - 1].ToCharArray());
+                        handler.Send(msg);
+                        l--;
+                    } while (l > 0);
+
+
+
                     handler.Shutdown(SocketShutdown.Both);
                     handler.Close();
                 }
