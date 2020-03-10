@@ -13,24 +13,29 @@ namespace Client
     class Client
     {
         IPEndPoint EndPoint { get; set; }
+        //IPHostEntry HostEntry { get; set; }
         private Client()
         {
         }
         public Client(string ip, int port)
         {
-            EndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            //HostEntry = Dns.GetHostEntry(ip);
+            EndPoint = new IPEndPoint(Dns.GetHostAddresses(ip)[0], port);
         }
         public string SendMessageToServer(string text)
         {
-            string unswerFromServer = "";
+            byte[] buffer = new byte[1024];
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+            int l = 0;
             try
             {
+                socket.Connect(EndPoint);
                 if (socket.Connected)
                 {
-                    socket.Connect(EndPoint);
-                    byte[] buffer = Encoding.ASCII.GetBytes(text);
-                    socket.Send(buffer);
+                    byte[] msg = Encoding.Unicode.GetBytes(text);
+                    int i = socket.Send(msg);
+                    l = socket.Receive(buffer);
+
                     //int i;
                     //do
                     //{
@@ -52,7 +57,7 @@ namespace Client
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
             }
-            return unswerFromServer;
+            return Encoding.Unicode.GetString(buffer, 0, l);
         }
     }
 }

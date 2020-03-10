@@ -23,37 +23,39 @@ namespace Server
 
         public void Start()
         {
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
             try
             {
-                string textReciveFromClient = "";
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
                 socket.Bind(EndPoint);
                 socket.Listen(10);
                 while (true)
                 {
-                    Socket socketClient = socket.Accept();
+                    Console.WriteLine("ожидаем соединение");
+                    Socket handler = socket.Accept();
+                    Console.WriteLine("новое подключение: " + handler.RemoteEndPoint.ToString());
+                    string data = null;
                     byte[] buffer = new byte[1024];
-                    int i = socketClient.Receive(buffer);
-                    do
-                    {
-                        textReciveFromClient += Encoding.ASCII.GetString(buffer, 0, i);
-                        Console.WriteLine(textReciveFromClient);
-                    } while (i > 0);
-                    socket.Shutdown(SocketShutdown.Both);
-                    socket.Close();
+                    int i = handler.Receive(buffer);
+                    data += Encoding.Unicode.GetString(buffer, 0, i);
+                    Console.WriteLine("data: " + data + '\n');
+                    string answer = "Спасибо за запрос";
+                    byte[] msg = Encoding.Unicode.GetBytes(answer);
+                    handler.Send(msg);
+
+
+                    //do
+                    //{
+                    //    textReciveFromClient += Encoding.ASCII.GetString(buffer, 0, i);
+                    //    Console.WriteLine(textReciveFromClient);
+                    //} while (i > 0);
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
                 }
             }
             catch (SocketException e)
             {
                 Console.WriteLine(e.Message);
             }
-            finally
-            {
-                
-            }
-
-
-
         }
 
     }
