@@ -34,22 +34,56 @@ namespace Server
                     Console.WriteLine("ожидаем соединение");
                     Socket handler = socket.Accept();
                     Console.WriteLine("новое подключение: " + handler.RemoteEndPoint.ToString());
+                    //получаем сообщение
                     byte[] buffer = new byte[1024];
                     int i = handler.Receive(buffer);
-                    messageList.Add(Encoding.Unicode.GetString(buffer, 0, i));
-
-
+                    string text = Encoding.Unicode.GetString(buffer, 0, i);
+                    
                     byte[] msg;
-                    int l = messageList.Count;
-                    do
+                    int l;
+
+                    if (text == "/refresh")//пересылаем список клиенту
                     {
-                        msg = Encoding.Unicode.GetBytes(messageList[l - 1].ToCharArray());
-                        handler.Send(msg);
-                        l--;
-                    } while (l > 0);
+                        if (messageList.Count == 0)
+                        {
+                            handler.Send(Encoding.Unicode.GetBytes("список пуст"));
+                        }
+                        else
+                        {
+                            l = messageList.Count;
+                            do
+                            {
+                                msg = Encoding.Unicode.GetBytes(messageList[l - 1].ToString());
+                                handler.Send(msg);
+                                l--;
+                            } while (l > 0);
+                        }
+                    }
+                    else//добавляем сообщение в лист и пересылаем список клиенту
+                    {
+                        //if (i > 0)
+                        //{
+                            messageList.Add(text);
+                            l = messageList.Count;
+                            do
+                            {
+                                msg = Encoding.Unicode.GetBytes(messageList[l - 1].ToString());
+                                handler.Send(msg);
+                                l--;
+                            } while (l > 0);
+                        //}
+                        //else
+                        //{
+                            //handler.Send(Encoding.Unicode.GetBytes("введите сообщение"));
+                        //}
+                        
+                    }
+
+                    
 
 
 
+                    Console.WriteLine("отключился: " + handler.RemoteEndPoint.ToString());
                     handler.Shutdown(SocketShutdown.Both);
                     handler.Close();
                 }

@@ -22,42 +22,51 @@ namespace Client
             //HostEntry = Dns.GetHostEntry(ip);
             EndPoint = new IPEndPoint(Dns.GetHostAddresses(ip)[0], port);
         }
-        public string SendMessageToServer(string text)
+        public string[] SendMessageToServer(string text)
         {
+            List<string> list = new List<string>();
             byte[] buffer = new byte[1024];
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            int l = 0;
-            try
+            if (text != "")
             {
-                socket.Connect(EndPoint);
-                if (socket.Connected)
+                try
                 {
-                    byte[] msg = Encoding.Unicode.GetBytes(text);
-                    int i = socket.Send(msg);
-                    l = socket.Receive(buffer);
+                    socket.Connect(EndPoint);
+                    if (socket.Connected)
+                    {
+                        int i;
+                        byte[] msg;
+                        i = 0;
+                        msg = Encoding.Unicode.GetBytes(text);
+                        socket.Send(msg);
+                        do
+                        {
+                            i = socket.Receive(buffer);
+                            list.Add(Encoding.Unicode.GetString(buffer, 0, i));
+                        } while (i > 0);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Error");
+                    }
+                }
+                catch (SocketException e)
+                {
+                    MessageBox.Show(e.Message);
+                }
+                finally
+                {
+                    socket.Shutdown(SocketShutdown.Both);
+                    socket.Close();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Введите сообщение");
 
-                    //int i;
-                    //do
-                    //{
-                    //    i = socket.Receive(buffer);
-                    //    unswerFromServer += Encoding.ASCII.GetString(buffer, 0, 1);
-                    //} while (i > 0);
-                }
-                else
-                {
-                    MessageBox.Show("Error");
-                }
             }
-            catch (SocketException e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            finally
-            {
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Close();
-            }
-            return Encoding.Unicode.GetString(buffer, 0, l);
+            
+            return list.ToArray<string>();
         }
     }
 }

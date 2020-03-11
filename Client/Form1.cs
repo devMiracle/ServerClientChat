@@ -30,14 +30,20 @@ namespace Client
         private void button2_Click(object sender, EventArgs e)
         {
             Client client = new Client("127.0.0.1", 1024);
-            //client.SendMessageToServer(textBox1.Text);
-            //listBox1.Text = client.SendMessageToServer(textBox1.Text);
-            listBox1.Items.Add(client.SendMessageToServer(textBox1.Text));
+            listBox1.Items.Clear();
+            listBox1.Items.AddRange(client.SendMessageToServer(textBox1.Text));
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Client client = new Client("127.0.0.1", 1024);
+            listBox1.Items.Clear();
+            listBox1.Items.AddRange(client.SendMessageToServer("/refresh"));
         }
     }
 }
